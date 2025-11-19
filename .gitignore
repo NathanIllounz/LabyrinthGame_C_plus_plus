@@ -1,0 +1,10 @@
+# Visual Studio files and directories to ignore
+.vs/
+*.pdb
+*.obj
+*.suo
+*.user
+*.ncb
+*.aps
+*.[Dd]ebug/
+*.[Rr]elease/
