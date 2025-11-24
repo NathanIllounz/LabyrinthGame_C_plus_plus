@@ -1,8 +1,2 @@
-﻿  Character.cpp
-  GameObject.cpp
-  main.cpp
-  Monster.cpp
-  Player.cpp
-  Utility.cpp
-  Generating Code...
+﻿  main.cpp
   LabyrinthGame.vcxproj -> C:\Users\nathan\Source\Repos\NathanIllounz\LabyrinthGame_C_plus_plus\x64\Debug\LabyrinthGame.exe
