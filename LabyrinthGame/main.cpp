@@ -54,7 +54,7 @@ int main()
     // --- Font and Text Setup (HUD) ---
     sf::Font font;
     // IMPORTANT: You must ensure 'Roboto.ttf' (or any other font) is in your x64/Debug folder!
-    if (!font.loadFromFile("Roboto.ttf"))
+    if (!font.loadFromFile("C:\\Users\\nathan\\source\\repos\\NathanIllounz\\LabyrinthGame_C_plus_plus\\LabyrinthGame\\x64\\Debug\\Roboto.ttf"))
     {
         std::cerr << "Error loading font file! Check x64/Debug folder." << std::endl;
         return -1;
