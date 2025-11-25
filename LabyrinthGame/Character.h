@@ -13,6 +13,7 @@ public:
     void takeDamage(int damage);
     int getHealth() const;
     bool isAlive() const;
+    bool isInvincible() const { return m_isInvincible; }
 
     // Movement/Physics (Virtual update to be overridden by Player/Monster)
     virtual void update(float dt, const int map[MAP_HEIGHT][MAP_WIDTH]) override = 0;
@@ -20,7 +21,7 @@ public:
 protected:
     int health;
     int maxHealth;
-    bool isInvincible;
+    bool m_isInvincible;
     sf::Clock damageTimer;
 
     // NEW: Handles the flickering/invincibility time after a hit

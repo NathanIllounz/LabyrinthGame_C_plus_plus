@@ -2,9 +2,11 @@
 #include <iostream>
 #include <cmath>        // For std::hypot
 #include <string>       // For std::to_string
+#include <list>         // For std::list
 #include "Player.h"     
 #include "Monster.h"    
 #include "Utility.h"    
+#include "DamageIndicator.h" 
 
 // TILE_SIZE is defined in Utility.h
 const float TILE_SIZE_FLOAT = static_cast<float>(TILE_SIZE);
@@ -34,12 +36,12 @@ int fixedMap[MAP_HEIGHT][MAP_WIDTH] = {
 
 int main()
 {
-    // 1. Create the game window and initial setup
+    // SFML 2.x Syntax: Direct VideoMode constructor
     sf::RenderWindow window(sf::VideoMode(800, 600), "Labyrinth Game - Phase 2");
     window.setFramerateLimit(60);
 
     // --- Character Setup ---
-    Player player(1.5f, 1.5f, TILE_SIZE_FLOAT, 10); // Player starts with 10 HP
+    Player player(1.5f, 1.5f, TILE_SIZE_FLOAT, 10);
     Monster monster1(20.5f, 15.5f, TILE_SIZE_FLOAT, fixedMap, 3);
     Monster monster2(10.5f, 8.5f, TILE_SIZE_FLOAT, fixedMap, 3);
 
@@ -53,13 +55,14 @@ int main()
 
     // --- Font and Text Setup (HUD) ---
     sf::Font font;
-    // IMPORTANT: You must ensure 'Roboto.ttf' (or any other font) is in your x64/Debug folder!
-    if (!font.loadFromFile("C:\\Users\\nathan\\source\\repos\\NathanIllounz\\LabyrinthGame_C_plus_plus\\LabyrinthGame\\x64\\Debug\\Roboto.ttf"))
+    // SFML 2.x Syntax: Simple loadFromFile
+    if (!font.loadFromFile("Roboto.ttf"))
     {
         std::cerr << "Error loading font file! Check x64/Debug folder." << std::endl;
         return -1;
     }
 
+    // SFML 2.x Syntax: Default constructor, then setup
     sf::Text healthText;
     healthText.setFont(font);
     healthText.setCharacterSize(24);
@@ -73,6 +76,9 @@ int main()
 
     bool gameIsOver = false;
 
+    // --- Combat Feedback List ---
+    std::list<DamageIndicator> damageIndicators;
+
     // 2. The Game Loop
     while (window.isOpen())
     {
@@ -80,6 +86,7 @@ int main()
         sf::Event event;
         while (window.pollEvent(event))
         {
+            // SFML 2.x Syntax: Direct member access for event type
             if (event.type == sf::Event::Closed)
                 window.close();
         }
@@ -87,53 +94,71 @@ int main()
         // Stop updates if the game is over
         if (gameIsOver)
         {
-            // Wait for 3 seconds after game over message appears, then close
             if (clock.getElapsedTime().asSeconds() > 3.0f)
             {
                 window.close();
             }
-            continue; // Skip the rest of the update loop
+            continue;
         }
 
         // --- 2b. Update Game State ---
         sf::Time deltaTime = clock.restart();
         float dt = deltaTime.asSeconds();
 
-        // 1. Update Player and Monsters
         player.update(dt, fixedMap);
         monster1.update(dt, fixedMap);
         monster2.update(dt, fixedMap);
 
-        // 2. Update Camera
         gameView.setCenter(player.getPosition());
 
         // 3. Check for Player-Monster Interaction and Combat
         sf::FloatRect playerBounds = player.getBounds();
 
-        // Check if the player has triggered an attack this frame (Spacebar pressed and cooldown is up)
-        bool playerAttacking = player.getAttackTimer().getElapsedTime().asSeconds() < dt;
+        // SFML 2.x Syntax: Check isKeyPressed without scoped enum
+        bool playerAttacking = sf::Keyboard::isKeyPressed(sf::Keyboard::Space) &&
+            player.getAttackTimer().getElapsedTime().asSeconds() < player.getAttackCooldown() + dt &&
+            player.getAttackTimer().getElapsedTime().asSeconds() >= player.getAttackCooldown();
 
-        // Helper lambda function to handle interaction for any monster
+
         auto handleInteraction = [&](Monster& monster)
             {
                 if (monster.isAlive())
                 {
-                    // A. Check for player-touching-monster collision (Player takes damage)
+                    // A. Player takes damage 
                     if (player.isAlive() && playerBounds.intersects(monster.getBounds()))
                     {
-                        player.takeDamage(1);
+                        if (!player.isInvincible())
+                        {
+                            player.takeDamage(1);
+
+                            damageIndicators.emplace_back(
+                                player.getPosition(),
+                                1,
+                                true,
+                                font
+                            );
+                        }
                     }
 
-                    // B. Check for Player Attack (Monster takes damage)
+                    // B. Check for Player Attack 
                     if (playerAttacking)
                     {
-                        // Calculate distance from player to monster center
                         float distance = std::hypot(player.getPosition().x - monster.getPosition().x,
                             player.getPosition().y - monster.getPosition().y);
 
                         if (distance <= player.getAttackRange())
                         {
-                            monster.takeDamage(player.getAttackDamage());
+                            if (!monster.isInvincible())
+                            {
+                                monster.takeDamage(player.getAttackDamage());
+
+                                damageIndicators.emplace_back(
+                                    monster.getPosition(),
+                                    player.getAttackDamage(),
+                                    false,
+                                    font
+                                );
+                            }
                         }
                     }
                 }
@@ -142,6 +167,18 @@ int main()
         handleInteraction(monster1);
         handleInteraction(monster2);
 
+        // --- Update and Clean Up Damage Indicators ---
+        for (auto it = damageIndicators.begin(); it != damageIndicators.end(); )
+        {
+            if (it->update(dt))
+            {
+                it = damageIndicators.erase(it);
+            }
+            else
+            {
+                ++it;
+            }
+        }
 
         // 4. Check for Win/Lose Conditions
         int playerTileX = static_cast<int>(player.getPosition().x / TILE_SIZE_FLOAT);
@@ -171,22 +208,21 @@ int main()
         // --- 2c. Render (Draw everything) ---
 
         // 1. Draw Game World (Relative to Camera)
-        window.setView(gameView); // Apply the camera view
+        window.setView(gameView);
         window.clear(sf::Color(20, 20, 20));
 
-        // ... (Map drawing code remains here) ...
         sf::RectangleShape tile(sf::Vector2f(TILE_SIZE_FLOAT, TILE_SIZE_FLOAT));
         for (int y = 0; y < MAP_HEIGHT; ++y)
         {
             for (int x = 0; x < MAP_WIDTH; ++x)
             {
-                if (fixedMap[y][x] == 1) // Wall
+                if (fixedMap[y][x] == 1)
                 {
-                    tile.setFillColor(sf::Color(100, 100, 100)); // Grey wall
+                    tile.setFillColor(sf::Color(100, 100, 100));
                 }
-                else if (fixedMap[y][x] == 2) // Exit
+                else if (fixedMap[y][x] == 2)
                 {
-                    tile.setFillColor(sf::Color::Green); // Bright Green Exit!
+                    tile.setFillColor(sf::Color::Green);
                 }
 
                 if (fixedMap[y][x] == 1 || fixedMap[y][x] == 2)
@@ -197,25 +233,27 @@ int main()
             }
         }
 
-        // Draw the monsters (only if alive)
         if (monster1.isAlive()) monster1.draw(window);
         if (monster2.isAlive()) monster2.draw(window);
 
-        // Draw the player (only if alive)
         if (player.isAlive()) player.draw(window);
 
-        // 2. Draw HUD (Fixed to Screen)
-        window.setView(window.getDefaultView()); // Switch to fixed screen view
+        // Draw ALL Active Damage Indicators (Floats in game world)
+        for (const auto& indicator : damageIndicators)
+        {
+            indicator.draw(window);
+        }
 
-        // Position Health Text in the top-left corner
+        // 2. Draw HUD (Fixed to Screen)
+        window.setView(window.getDefaultView());
+
         healthText.setPosition(10.f, 10.f);
         window.draw(healthText);
 
-        // Display the status message in the center if game is over
         if (gameIsOver)
         {
-            // Center the message on the screen (800x600 window)
             sf::FloatRect textRect = statusText.getLocalBounds();
+            // SFML 2.x Syntax: Direct member access
             statusText.setOrigin(textRect.left + textRect.width / 2.0f,
                 textRect.top + textRect.height / 2.0f);
             statusText.setPosition(800.f / 2.0f, 600.f / 2.0f);

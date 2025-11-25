@@ -104,12 +104,12 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>C:\nathan\SFML-2.6.2\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Nathan\SFML\SFML-2.6.2-windows-vc17-64-bit\SFML-2.6.2\include</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>C:\nathan\SFML-2.6.2\lib</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>C:\Nathan\SFML\SFML-2.6.2-windows-vc17-64-bit\SFML-2.6.2\lib</AdditionalLibraryDirectories>
       <AdditionalDependencies>$(CoreLibraryDependencies);%(AdditionalDependencies);sfml-graphics-d.lib;sfml-window-d.lib;sfml-system-d.lib</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
@@ -134,6 +134,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="Character.cpp" />
+    <ClCompile Include="DamageIndicator.cpp" />
     <ClCompile Include="GameObject.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Monster.cpp" />
@@ -142,6 +143,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Character.h" />
+    <ClInclude Include="DamageIndicator.h" />
     <ClInclude Include="GameObject.h" />
     <ClInclude Include="Monster.h" />
     <ClInclude Include="Player.h" />

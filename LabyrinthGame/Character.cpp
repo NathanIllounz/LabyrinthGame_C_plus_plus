@@ -1,17 +1,17 @@
 #include "Character.h"
 
 Character::Character(float x, float y, float size, int initialHealth)
-    : GameObject(x, y, size), health(initialHealth), maxHealth(initialHealth), isInvincible(false)
+    : GameObject(x, y, size), health(initialHealth), maxHealth(initialHealth), m_isInvincible(false)
 {
 }
 
 void Character::takeDamage(int damage)
 {
-    if (!isInvincible)
+    if (!m_isInvincible)
     {
         health -= damage;
         std::cout << "Took " << damage << " damage. Health: " << health << std::endl;
-        isInvincible = true;
+        m_isInvincible = true;
         damageTimer.restart();
         shape.setFillColor(sf::Color::Yellow); // Flash yellow on hit
     }
@@ -20,13 +20,13 @@ void Character::takeDamage(int damage)
 void Character::updateInvincibility(float dt)
 {
     // Check if invincibility period (1.5 seconds) is over
-    if (isInvincible && damageTimer.getElapsedTime().asSeconds() > 1.5f)
+    if (m_isInvincible && damageTimer.getElapsedTime().asSeconds() > 1.5f)
     {
-        isInvincible = false;
+        m_isInvincible = false;
         // The derived class (Player/Monster) must set its final color in its update function
     }
     // Simple visual effect: make the character flash/flicker while invincible
-    if (isInvincible)
+    if (m_isInvincible)
     {
         // Toggle visibility quickly
         int time_ms = damageTimer.getElapsedTime().asMilliseconds();

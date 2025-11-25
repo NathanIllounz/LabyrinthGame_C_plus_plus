@@ -20,7 +20,7 @@ void Player::update(float dt, const int map[MAP_HEIGHT][MAP_WIDTH])
     updateInvincibility(dt);
 
     // If not invincible, set the player's final color
-    if (!isInvincible)
+    if (!m_isInvincible)
     {
         shape.setFillColor(sf::Color::Red);
     }

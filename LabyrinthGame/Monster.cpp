@@ -30,7 +30,7 @@ void Monster::update(float dt, const int map[MAP_HEIGHT][MAP_WIDTH])
     updateInvincibility(dt);
 
     // If not invincible, set the monster's final color
-    if (!isInvincible)
+    if (!m_isInvincible)
     {
         shape.setFillColor(sf::Color(150, 0, 0)); // Dark Red color
     }
